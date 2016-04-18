@@ -9,9 +9,9 @@
 
 """Parser for the transshipment solver project"""
 
-from edge import Edge
-from graph import Graph
-from node import Node
+from .edge import Edge
+from .graph import Graph
+from .node import Node
 
 
 class Parser(object):
