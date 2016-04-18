@@ -7,6 +7,7 @@
 #
 # Created: 17/04/2016 by Fouss
 
+from ag41_transshipment.app import *
 from ag41_transshipment.edge import *
 from ag41_transshipment.graph import *
 from ag41_transshipment.node import *
