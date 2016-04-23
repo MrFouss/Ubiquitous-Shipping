@@ -9,9 +9,7 @@
 
 """Parser for the transshipment solver project"""
 
-from .edge import Edge
-from .graph import Graph
-from .node import Node
+import networkx as nx
 
 
 class Parser(object):
@@ -31,12 +29,7 @@ class Parser(object):
 
         file = open(self.file_path, 'r')
 
-        name = ''
-        nbr_nodes = -1
-        nbr_edges = -1
-        max_t = -1
-        nodes = dict()
-        edges = dict()
+        new_graph = nx.DiGraph()
 
         i = 0
 
@@ -45,19 +38,19 @@ class Parser(object):
 
             line = line.split()
             if line[0] == 'NODE:':
-                nodes[int(line[1])] = Node(int(line[1]), float(line[2]), float(line[3]), int(line[4]), float(line[5]),
-                                           float(line[6]))
+                new_graph.add_node(int(line[1]), x=float(line[2]), y=float(line[3]), demand=int(line[4]),
+                                   unit_cost=float(line[5]), time=float(line[6]))
             elif line[0] == 'EDGE:':
-                edges[int(line[1])] = Edge(int(line[1]), int(line[2]), int(line[3]), int(line[4]), float(line[5]),
-                                           float(line[6]), float(line[7]))
+                new_graph.add_edge(int(line[2]), int(line[3]), id=int(line[1]), capacity=int(line[4]),
+                                   fixed_cost=float(line[5]), unit_cost=float(line[6]), time=float(line[7]))
             elif line[0] == 'NAME':
-                name = line[2]
+                new_graph.graph['name'] = line[2]
             elif line[0] == 'NBR_NODES':
-                nbr_nodes = int(line[2])
+                new_graph.graph['nbr_nodes'] = int(line[2])
             elif line[0] == 'NBR_EDGES':
-                nbr_edges = int(line[2])
+                new_graph.graph['nbr_edges'] = int(line[2])
             elif line[0] == 'T':
-                max_t = float(line[2])
+                new_graph.graph['time'] = float(line[2])
             elif '#' in line[0]:
                 pass
             elif line[0] == 'EOF':
@@ -65,7 +58,15 @@ class Parser(object):
             else:
                 raise SyntaxError('File {} has syntax error at line {}'.format(self.file_path, i))
 
-        graph = Graph(name, max_t, nbr_nodes, nbr_edges, nodes, edges)
+        file.close()
+
+        return new_graph
+
+    def export_to_file(self):
+        """Exports the solution of the problem"""
+
+        file = open(self.file_path+'.sol', 'w+')
+
+        pass
 
         file.close()
-        return graph

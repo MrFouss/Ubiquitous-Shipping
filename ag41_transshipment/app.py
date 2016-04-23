@@ -10,6 +10,7 @@
 """Main file for the transshipment solver project"""
 
 from ag41_transshipment.parser import *
+import sys
 
 
 class Application(object):
@@ -19,28 +20,36 @@ class Application(object):
         self.parser = Parser(file_name)
         self.graph = self.parser.import_from_file()
 
-        print('Name: {}'.format(self.graph.name))
-        print('T: {}'.format(self.graph.max_t))
+        debug_graph(self.graph)
 
-        print('\nNodes ({}):'.format(self.graph.nbr_nodes))
-        for i in range(self.graph.nbr_nodes):
-            if self.graph.nodes[i + 1].demand < 0:
-                print('\tDepot #{}:'.format(self.graph.nodes[i + 1].id))
-            elif self.graph.nodes[i + 1].demand > 0:
-                print('\tClient #{}:'.format(self.graph.nodes[i + 1].id))
-            else:
-                print('\tPlatform #{}:'.format(self.graph.nodes[i + 1].id))
-            print('\t\tCoordinates: ({},{})'.format(self.graph.nodes[i + 1].coord[0], self.graph.nodes[i + 1].coord[1]))
-            print('\t\tDemand: {}'.format(self.graph.nodes[i + 1].demand))
-            print('\t\tUnit cost: {}'.format(self.graph.nodes[i + 1].cost))
-            print('\t\tTime: {}'.format(self.graph.nodes[i + 1].time))
+        self.parser.export_to_file()
 
-        print('\nEdges ({}):'.format(self.graph.nbr_edges))
-        for i in range(self.graph.nbr_edges):
-            print('\tEdge #{}:'.format(self.graph.edges[i + 1].id))
-            print('\t\tStarting node: {}'.format(self.graph.edges[i + 1].start))
-            print('\t\tEnding node: {}'.format(self.graph.edges[i + 1].end))
-            print('\t\tCapacity: {}'.format(self.graph.edges[i + 1].capacity))
-            print('\t\tFixed cost: {}'.format(self.graph.edges[i + 1].fixed_cost))
-            print('\t\tUnit cost: {}'.format(self.graph.edges[i + 1].unit_cost))
-            print('\t\tTime: {}'.format(self.graph.edges[i + 1].time))
+
+def debug_graph(graph):
+    """Displays all info about the graph (parser debugging only)"""
+
+    print('Name: {}'.format(graph.graph['name']), file=sys.stderr)
+    print('Time: {}'.format(graph.graph['time']), file=sys.stderr)
+
+    print('\nNodes ({}):'.format(graph.graph['nbr_nodes']), file=sys.stderr)
+    for i in graph.nodes():
+        if graph.node[i]['demand'] < 0:
+            print('\tDepot #{}:'.format(i), file=sys.stderr)
+        elif graph.node[i]['demand'] > 0:
+            print('\tClient #{}:'.format(i), file=sys.stderr)
+        else:
+            print('\tPlatform #{}:'.format(i), file=sys.stderr)
+        print('\t\tCoordinates: ({}, {})'.format(graph.node[i]['x'], graph.node[i]['y']), file=sys.stderr)
+        print('\t\tDemand: {}'.format(graph.node[i]['demand']), file=sys.stderr)
+        print('\t\tUnit cost: {}'.format(graph.node[i]['unit_cost']), file=sys.stderr)
+        print('\t\tTime: {}'.format(graph.node[i]['time']), file=sys.stderr)
+
+    print('\nEdges ({}):'.format(graph.graph['nbr_edges']), file=sys.stderr)
+    for (u, v) in graph.edges():
+        print('\tEdge #{}:'.format(graph.edge[u][v]['id']), file=sys.stderr)
+        print('\t\tStarting node: {}'.format(u), file=sys.stderr)
+        print('\t\tEnding node: {}'.format(v), file=sys.stderr)
+        print('\t\tCapacity: {}'.format(graph.edge[u][v]['capacity']), file=sys.stderr)
+        print('\t\tFixed cost: {}'.format(graph.edge[u][v]['fixed_cost']), file=sys.stderr)
+        print('\t\tUnit cost: {}'.format(graph.edge[u][v]['unit_cost']), file=sys.stderr)
+        print('\t\tTime: {}'.format(graph.edge[u][v]['time']), file=sys.stderr)
