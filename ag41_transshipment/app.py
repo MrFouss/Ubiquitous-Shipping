@@ -9,7 +9,8 @@
 
 """Main file for the transshipment solver project"""
 
-from ag41_transshipment.parser import *
+from ag41_transshipment.parser import Parser
+from ag41_transshipment.solver import *
 import sys
 
 
@@ -18,8 +19,11 @@ class Application(object):
 
     def __init__(self, file_name):
         self.parser = Parser(file_name)
-        self.graph = self.parser.import_from_file()
 
+        self.graph = self.parser.import_from_file()
+        debug_graph(self.graph)
+
+        solve(self.graph)
         debug_graph(self.graph)
 
         self.parser.export_to_file()
@@ -43,6 +47,7 @@ def debug_graph(graph):
         print('\t\tDemand: {}'.format(graph.node[i]['demand']), file=sys.stderr)
         print('\t\tUnit cost: {}'.format(graph.node[i]['unit_cost']), file=sys.stderr)
         print('\t\tTime: {}'.format(graph.node[i]['time']), file=sys.stderr)
+        print('\t\tFlow: {}'.format(graph.node[i]['flow']), file=sys.stderr)
 
     print('\nEdges ({}):'.format(graph.graph['nbr_edges']), file=sys.stderr)
     for (u, v) in graph.edges():
@@ -53,3 +58,4 @@ def debug_graph(graph):
         print('\t\tFixed cost: {}'.format(graph.edge[u][v]['fixed_cost']), file=sys.stderr)
         print('\t\tUnit cost: {}'.format(graph.edge[u][v]['unit_cost']), file=sys.stderr)
         print('\t\tTime: {}'.format(graph.edge[u][v]['time']), file=sys.stderr)
+        print('\t\tFlow: {}'.format(graph.edge[u][v]['flow']), file=sys.stderr)

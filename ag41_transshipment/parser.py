@@ -39,10 +39,10 @@ class Parser(object):
             line = line.split()
             if line[0] == 'NODE:':
                 new_graph.add_node(int(line[1]), x=float(line[2]), y=float(line[3]), demand=int(line[4]),
-                                   unit_cost=float(line[5]), time=float(line[6]))
+                                   unit_cost=float(line[5]), time=float(line[6]), flow=0)
             elif line[0] == 'EDGE:':
                 new_graph.add_edge(int(line[2]), int(line[3]), id=int(line[1]), capacity=int(line[4]),
-                                   fixed_cost=float(line[5]), unit_cost=float(line[6]), time=float(line[7]))
+                                   fixed_cost=float(line[5]), unit_cost=float(line[6]), time=float(line[7]), flow=0)
             elif line[0] == 'NAME':
                 new_graph.graph['name'] = line[2]
             elif line[0] == 'NBR_NODES':
