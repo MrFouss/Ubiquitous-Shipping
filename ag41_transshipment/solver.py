@@ -17,6 +17,11 @@ def solve(graph):
 
     initialize(graph)
 
+    contibool = True
+    while contibool:
+        gap_graph = get_gap_graph(graph)
+        contibool = False
+
 
 def initialize(graph):
     """Defines an initial solution for the transshipment problem"""
@@ -78,8 +83,8 @@ def get_gap_graph(graph):
     """Details platforms with new nodes and edges"""
 
     gap_graph = nx.DiGraph()
-    gap_graph.add_nodes_from(graph.nodes)
-    for u, v in graph.edges:
+    gap_graph.add_nodes_from(graph)
+    for u, v in graph.edges_iter():
         if graph.edge[u][v]['flow'] < graph.edge[u][v]['capacity']:
             gap_graph.add_edge(u, v, id=graph.edge[u][v]['id'],
                                capacity=graph.edge[u][v]['capacity']-graph.edge[u][v]['flow'],
