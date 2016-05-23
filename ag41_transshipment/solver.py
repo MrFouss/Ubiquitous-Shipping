@@ -17,9 +17,9 @@ def solve(graph):
     """Main solving function"""
 
     initialize(graph)
-    print('\n#####################', file=sys.stderr)
-    print('# Initial solution! #', file=sys.stderr)
-    print('#####################', file=sys.stderr)
+    print('\n#####################', file=sys.stdout)
+    print('# Initial solution! #', file=sys.stdout)
+    print('#####################', file=sys.stdout)
     print_solution(graph)
 
     try:
@@ -29,58 +29,90 @@ def solve(graph):
             continual = False
             gap_graph = get_gap_graph(graph)
             tmp_graph = graph.copy()
-            for cycle in nx.simple_cycles(gap_graph):
+            cycles = nx.simple_cycles(gap_graph)
+            for cycle in cycles:
                 # for each cycle in the gap graph
                 if len(cycle) > 2:
                     # if the cycle is not only between two nodes
                     cycle = cycle + [cycle[0]]
                     # adding the first node of the cycle at the end
                     maxi = gap_graph.edge[cycle[0]][cycle[1]]['capacity']
-                    first = True
-                    for i in range(0, len(cycle)):
+                    for i in range(1, len(cycle)):
                         # computing the maximum flow we can change in the cycle
-                        if not first:
-                            maxi = min(maxi, gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'])
-                        else:
-                            first = False
+                        maxi = min(maxi, gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'])
 
-                    first = True
                     cost = 0
-                    for i in range(0, len(cycle)):
-                        if not first:
-                            cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] * maxi
-                            if gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'] == maxi:
-                                cost -= gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
-                            if tmp_graph.node[cycle[i]]['demand'] == 0:
-                                if tmp_graph.node[cycle[i - 1]]['demand'] < 0:
-                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * maxi
-                                else:
-                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * maxi
+                    for i in range(1, len(cycle)):
+                        cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] * maxi
+                        # adding the unit cost of the edge
+                        if gap_graph[cycle[i - 1]][cycle[i]]['fixed_cost'] > 0:
+                            # if we increase the flow in a graph edge
+                            if tmp_graph[cycle[i - 1]][cycle[i]]['flow'] == 0:
+                                # if the edge was unused, we add the fixed cost
+                                cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
                         else:
-                            first = False
+                            # if we decrease the flow in a graph edge
+                            if gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'] == maxi:
+                                # if we empty the edge in the base graph, we deduce the fixed cost
+                                cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
+                        if tmp_graph.node[cycle[i]]['demand'] == 0:
+                            # if it is a platform
+                            if i < len(cycle) - 1:
+                                if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < \
+                                        tmp_graph.node[cycle[i + 1]]['demand']:
+                                    # if the in node of the edge is a depot and the out is a client
+                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * maxi
+                                    # we add the unit cost of the platform
+                                elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > \
+                                        tmp_graph.node[cycle[i + 1]]['demand']:
+                                    # if the in node of the edge is a client and the out is a depot
+                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * maxi
+                                    # we deduce the unit cost of the platform
+                            else:
+                                if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < tmp_graph.node[cycle[1]]['demand']:
+                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * maxi
+                                elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > tmp_graph.node[cycle[1]]['demand']:
+                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * maxi
 
                     if cost < 0:
                         continual = True
-                        first = True
-                        for i in range(0, len(cycle)):
-                            if not first:
-                                if tmp_graph.has_edge(cycle[i - 1], cycle[i]):
-                                    tmp_graph.edge[cycle[i - 1]][cycle[i]]['flow'] += maxi
-                                else:
-                                    tmp_graph.edge[cycle[i]][cycle[i - 1]]['flow'] += maxi
+                        # there is a negative cycle so we continue
+                        for i in range(1, len(cycle)):
 
-                                if tmp_graph.node[cycle[i]]['demand'] == 0:
-                                    if tmp_graph.node[cycle[i - 1]]['demand'] > 0:
-                                        tmp_graph.node[cycle[i]]['flow'] += maxi
-                                    else:
-                                        tmp_graph.node[cycle[i]]['flow'] -= maxi
+                            if tmp_graph.has_edge(cycle[i - 1], cycle[i]):
+                                # if the edge is in the same orientation in the graph and the gap graph
+                                tmp_graph.edge[cycle[i - 1]][cycle[i]]['flow'] += maxi
+                                # we add the flow
                             else:
-                                first = False
+                                # if the edge is in the opposite orientation in the graph and the gap graph
+                                tmp_graph.edge[cycle[i]][cycle[i - 1]]['flow'] -= maxi
+                                # we deduce the flow
+                            if tmp_graph.node[cycle[i]]['demand'] == 0:
+                                # if it is a platform
+                                if i < len(cycle) - 1:
+                                    if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < \
+                                            tmp_graph.node[cycle[i + 1]]['demand']:
+                                        # if the in node of the edge is a depot and the out is a client
+                                        tmp_graph.node[cycle[i]]['flow'] += maxi
+                                        # we add the unit cost of the platform
+                                    elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > \
+                                            tmp_graph.node[cycle[i + 1]]['demand']:
+                                        # if the in node of the edge is a client and the out is a depot
+                                        tmp_graph.node[cycle[i]]['flow'] -= maxi
+                                        # we deduce the unit cost of the platform
+                                else:
+                                    if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < \
+                                            tmp_graph.node[cycle[1]]['demand']:
+                                        tmp_graph.node[cycle[i]]['flow'] += maxi
+                                    elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > \
+                                            tmp_graph.node[cycle[1]]['demand']:
+                                        tmp_graph.node[cycle[i]]['flow'] -= maxi
+
                         break
             graph = tmp_graph
-            print('\n##############################', file=sys.stderr)
-            print('# New better solution found! #', file=sys.stderr)
-            print('##############################', file=sys.stderr)
+            print('\n##############################', file=sys.stdout)
+            print('# New better solution found! #', file=sys.stdout)
+            print('##############################', file=sys.stdout)
             print_solution(graph)
 
     except KeyboardInterrupt:
@@ -149,16 +181,17 @@ def get_gap_graph(graph):
     gap_graph = nx.DiGraph()
     gap_graph.add_nodes_from(graph)
     for u, v in graph.edges_iter():
-        if graph.edge[u][v]['flow'] < graph.edge[u][v]['capacity']:
-            gap_graph.add_edge(u, v, id=graph.edge[u][v]['id'],
-                               capacity=graph.edge[u][v]['capacity'] - graph.edge[u][v]['flow'],
-                               fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'],
-                               time=graph.edge[u][v]['time'])
+        if u != v:
+            if graph.edge[u][v]['flow'] < graph.edge[u][v]['capacity']:
+                gap_graph.add_edge(u, v,
+                                   capacity=graph.edge[u][v]['capacity'] - graph.edge[u][v]['flow'],
+                                   fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'],
+                                   time=graph.edge[u][v]['time'])
 
-        if graph.edge[u][v]['flow'] > 0:
-            gap_graph.add_edge(v, u, id=graph.edge[u][v]['id'], capacity=graph.edge[u][v]['flow'],
-                               fixed_cost=-graph.edge[u][v]['fixed_cost'], unit_cost=-graph.edge[u][v]['unit_cost'],
-                               time=graph.edge[u][v]['time'])
+            if graph.edge[u][v]['flow'] > 0:
+                gap_graph.add_edge(v, u, capacity=graph.edge[u][v]['flow'],
+                                   fixed_cost=-graph.edge[u][v]['fixed_cost'], unit_cost=-graph.edge[u][v]['unit_cost'],
+                                   time=graph.edge[u][v]['time'])
 
     return gap_graph
 
@@ -171,13 +204,12 @@ def print_solution(graph):
     for i in get_platform_list(graph):
         if graph.node[i]['flow'] > 0:
             cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
-            print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']), file=sys.stderr)
+            print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']))
 
     for u, v in graph.edges_iter():
         if graph.edge[u][v]['flow'] > 0:
             cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
             print('Edge #{} from node #{} to node #{} used with flow={}'.format(graph.edge[u][v]['id'], u, v,
-                                                                                graph.edge[u][v]['flow']),
-                  file=sys.stderr)
+                                                                            graph.edge[u][v]['flow']))
 
-    print('Result: {}'.format(cost), file=sys.stderr)
+    print('Result: {}'.format(cost), file=sys.stdout)
