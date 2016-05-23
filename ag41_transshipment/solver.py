@@ -9,11 +9,65 @@
 
 """Solver file for the transshipment solver project"""
 
+import networkx as nx
+
 
 def solve(graph):
     """Main solving function"""
 
     initialize(graph)
+
+    continual = True
+    while continual:
+        continual = False
+        gap_graph = get_gap_graph(graph)
+        for cycle in nx.simple_cycles(gap_graph):
+            if len(cycle) > 2:
+                cycle = cycle + [cycle[0]]
+                mini = gap_graph.edge[cycle[0]][cycle[1]]['capacity']
+                first = True
+                for i in range(0, len(cycle)):
+                    if not first:
+                        mini = min(mini, gap_graph.edge[cycle[i-1]][cycle[i]]['capacity'])
+                    else:
+                        first = False
+
+                first = True
+                cost = 0
+                for i in range(0, len(cycle)):
+                    if not first:
+                        cost += gap_graph.edge[cycle[i-1]][cycle[i]]['unit_cost']*mini
+                        if gap_graph.edge[cycle[i-1]][cycle[i]]['capacity'] == mini:
+                            if gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] < 0:
+                                cost -= gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
+                            else:
+                                cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
+                        if graph.node[cycle[i]]['demand'] == 0:
+                            if graph.node[cycle[i-1]]['demand'] > 0:
+                                cost += graph.node[cycle[i]]['unit_cost']*mini
+                            else:
+                                cost -= graph.node[cycle[i]]['unit_cost']*mini
+                    else:
+                        first = False
+
+                if cost < 0:
+                    continual = True
+                    first = True
+                    for i in range(0, len(cycle)):
+                        if not first:
+                            if graph.has_edge(cycle[i-1], cycle[i]):
+                                graph.edge[cycle[i-1]][cycle[i]]['flow'] += mini
+                            else:
+                                graph.edge[cycle[i]][cycle[i-1]]['flow'] += mini
+
+                            if graph.node[cycle[i]]['demand'] == 0:
+                                if graph.node[cycle[i-1]]['demand'] > 0:
+                                    graph.node[cycle[i]]['flow'] += mini
+                                else:
+                                    graph.node[cycle[i]]['flow'] -= mini
+                        else:
+                            first = False
+                    break
 
 
 def initialize(graph):
@@ -48,3 +102,45 @@ def get_depot_list(graph):
             depot_list.append(i)
 
     return depot_list
+
+
+def get_platform_list(graph):
+    """"Lists all platform nodes"""
+
+    platform_list = []
+    for i in graph.nodes():
+        if graph.node[i]['demand'] == 0:
+            platform_list.append(i)
+
+    return platform_list
+
+
+def get_client_list(graph):
+    """"Lists all platform nodes"""
+
+    client_list = []
+    for i in graph.nodes():
+        if graph.node[i]['demand'] > 0:
+            client_list.append(i)
+
+    return client_list
+
+
+def get_gap_graph(graph):
+    """Details platforms with new nodes and edges"""
+
+    gap_graph = nx.DiGraph()
+    gap_graph.add_nodes_from(graph)
+    for u, v in graph.edges_iter():
+        if graph.edge[u][v]['flow'] < graph.edge[u][v]['capacity']:
+            gap_graph.add_edge(u, v, id=graph.edge[u][v]['id'],
+                               capacity=graph.edge[u][v]['capacity']-graph.edge[u][v]['flow'],
+                               fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'],
+                               time=graph.edge[u][v]['time'])
+
+        if graph.edge[u][v]['flow'] > 0:
+            gap_graph.add_edge(v, u, id=graph.edge[u][v]['id'], capacity=graph.edge[u][v]['flow'],
+                               fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'],
+                               time=graph.edge[u][v]['time'])
+
+    return gap_graph
