@@ -73,10 +73,14 @@ def print_solution(graph):
     cost = 0
 
     for i in get_platform_list(graph):
+        if graph.node[i]['flow'] > 0:
             cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
+            print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']))
 
     for u, v in graph.edges_iter():
         if graph.edge[u][v]['flow'] > 0:
             cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
+            print('Edge #{} from node #{} to node #{} used with flow={}'.format(graph.edge[u][v]['id'], u, v,
+                                                                    graph.edge[u][v]['flow']))
 
     print('Result: {}'.format(cost))
