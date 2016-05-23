@@ -25,7 +25,6 @@ class Application(object):
         # debug_graph(self.graph)
 
         solve(self.graph)
-        print_solution(self.graph)
 
         # debug_graph(self.graph)
 
@@ -62,25 +61,3 @@ def debug_graph(graph):
         print('\t\tUnit cost: {}'.format(graph.edge[u][v]['unit_cost']), file=sys.stderr)
         print('\t\tTime: {}'.format(graph.edge[u][v]['time']), file=sys.stderr)
         print('\t\tFlow: {}'.format(graph.edge[u][v]['flow']), file=sys.stderr)
-
-
-def print_solution(graph):
-    """Displays all info about the solution of the problem"""
-
-    print('Name: {}'.format(graph.graph['name']))
-    print('Time: {}'.format(graph.graph['time']))
-
-    cost = 0
-
-    for i in get_platform_list(graph):
-        if graph.node[i]['flow'] > 0:
-            cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
-            print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']))
-
-    for u, v in graph.edges_iter():
-        if graph.edge[u][v]['flow'] > 0:
-            cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
-            print('Edge #{} from node #{} to node #{} used with flow={}'.format(graph.edge[u][v]['id'], u, v,
-                                                                    graph.edge[u][v]['flow']))
-
-    print('Result: {}'.format(cost))

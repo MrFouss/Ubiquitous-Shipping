@@ -10,12 +10,16 @@
 """Solver file for the transshipment solver project"""
 
 import networkx as nx
+import sys
 
 
 def solve(graph):
     """Main solving function"""
 
     initialize(graph)
+    print('\n#####################', file=sys.stderr)
+    print('# Initial solution! #', file=sys.stderr)
+    print('#####################', file=sys.stderr)
 
     try:
         continual = True
@@ -72,7 +76,11 @@ def solve(graph):
                             else:
                                 first = False
                         break
-            graph = tmp_graph
+            graph = tmp_graph.copy()
+            print('\n##############################', file=sys.stderr)
+            print('# New better solution found! #', file=sys.stderr)
+            print('##############################', file=sys.stderr)
+            print_solution(graph)
 
     except KeyboardInterrupt:
         print('Optimization interrupted!')
@@ -152,3 +160,23 @@ def get_gap_graph(graph):
                                time=graph.edge[u][v]['time'])
 
     return gap_graph
+
+
+def print_solution(graph):
+    """Displays all info about the solution of the problem"""
+
+    cost = 0
+
+    for i in get_platform_list(graph):
+        if graph.node[i]['flow'] > 0:
+            cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
+            print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']), file=sys.stderr)
+
+    for u, v in graph.edges_iter():
+        if graph.edge[u][v]['flow'] > 0:
+            cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
+            print('Edge #{} from node #{} to node #{} used with flow={}'.format(graph.edge[u][v]['id'], u, v,
+                                                                                graph.edge[u][v]['flow']),
+                  file=sys.stderr)
+
+    print('Result: {}'.format(cost), file=sys.stderr)
