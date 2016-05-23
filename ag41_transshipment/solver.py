@@ -17,57 +17,63 @@ def solve(graph):
 
     initialize(graph)
 
-    continual = True
-    while continual:
-        continual = False
-        gap_graph = get_gap_graph(graph)
-        for cycle in nx.simple_cycles(gap_graph):
-            if len(cycle) > 2:
-                cycle = cycle + [cycle[0]]
-                mini = gap_graph.edge[cycle[0]][cycle[1]]['capacity']
-                first = True
-                for i in range(0, len(cycle)):
-                    if not first:
-                        mini = min(mini, gap_graph.edge[cycle[i-1]][cycle[i]]['capacity'])
-                    else:
-                        first = False
-
-                first = True
-                cost = 0
-                for i in range(0, len(cycle)):
-                    if not first:
-                        cost += gap_graph.edge[cycle[i-1]][cycle[i]]['unit_cost']*mini
-                        if gap_graph.edge[cycle[i-1]][cycle[i]]['capacity'] == mini:
-                            if gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] < 0:
-                                cost -= gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
-                            else:
-                                cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
-                        if graph.node[cycle[i]]['demand'] == 0:
-                            if graph.node[cycle[i-1]]['demand'] > 0:
-                                cost += graph.node[cycle[i]]['unit_cost']*mini
-                            else:
-                                cost -= graph.node[cycle[i]]['unit_cost']*mini
-                    else:
-                        first = False
-
-                if cost < 0:
-                    continual = True
+    try:
+        continual = True
+        while continual:
+            continual = False
+            gap_graph = get_gap_graph(graph)
+            tmp_graph = graph.copy()
+            for cycle in nx.simple_cycles(gap_graph):
+                if len(cycle) > 2:
+                    cycle = cycle + [cycle[0]]
+                    mini = gap_graph.edge[cycle[0]][cycle[1]]['capacity']
                     first = True
                     for i in range(0, len(cycle)):
                         if not first:
-                            if graph.has_edge(cycle[i-1], cycle[i]):
-                                graph.edge[cycle[i-1]][cycle[i]]['flow'] += mini
-                            else:
-                                graph.edge[cycle[i]][cycle[i-1]]['flow'] += mini
-
-                            if graph.node[cycle[i]]['demand'] == 0:
-                                if graph.node[cycle[i-1]]['demand'] > 0:
-                                    graph.node[cycle[i]]['flow'] += mini
-                                else:
-                                    graph.node[cycle[i]]['flow'] -= mini
+                            mini = min(mini, gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'])
                         else:
                             first = False
-                    break
+
+                    first = True
+                    cost = 0
+                    for i in range(0, len(cycle)):
+                        if not first:
+                            cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] * mini
+                            if gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'] == mini:
+                                if gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] < 0:
+                                    cost -= gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
+                                else:
+                                    cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
+                            if tmp_graph.node[cycle[i]]['demand'] == 0:
+                                if tmp_graph.node[cycle[i - 1]]['demand'] > 0:
+                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * mini
+                                else:
+                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * mini
+                        else:
+                            first = False
+
+                    if cost < 0:
+                        continual = True
+                        first = True
+                        for i in range(0, len(cycle)):
+                            if not first:
+                                if tmp_graph.has_edge(cycle[i - 1], cycle[i]):
+                                    tmp_graph.edge[cycle[i - 1]][cycle[i]]['flow'] += mini
+                                else:
+                                    tmp_graph.edge[cycle[i]][cycle[i - 1]]['flow'] += mini
+
+                                if tmp_graph.node[cycle[i]]['demand'] == 0:
+                                    if tmp_graph.node[cycle[i - 1]]['demand'] > 0:
+                                        tmp_graph.node[cycle[i]]['flow'] += mini
+                                    else:
+                                        tmp_graph.node[cycle[i]]['flow'] -= mini
+                            else:
+                                first = False
+                        break
+            graph = tmp_graph
+
+    except KeyboardInterrupt:
+        print('Optimization interrupted!')
 
 
 def initialize(graph):
@@ -116,7 +122,7 @@ def get_platform_list(graph):
 
 
 def get_client_list(graph):
-    """"Lists all platform nodes"""
+    """"Lists all client nodes"""
 
     client_list = []
     for i in graph.nodes():
