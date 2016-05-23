@@ -20,17 +20,22 @@ def solve(graph):
     try:
         continual = True
         while continual:
+            # while there is at least one negative cycle
             continual = False
             gap_graph = get_gap_graph(graph)
             tmp_graph = graph.copy()
             for cycle in nx.simple_cycles(gap_graph):
+                # for each cycle in the gap graph
                 if len(cycle) > 2:
+                    # if the cycle is not only between to nodes
                     cycle = cycle + [cycle[0]]
-                    mini = gap_graph.edge[cycle[0]][cycle[1]]['capacity']
+                    # adding the first node of the cycle at the end
+                    maxi = gap_graph.edge[cycle[0]][cycle[1]]['capacity']
                     first = True
                     for i in range(0, len(cycle)):
+                        # computing the maximum flow we can change in the cycle
                         if not first:
-                            mini = min(mini, gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'])
+                            maxi = min(maxi, gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'])
                         else:
                             first = False
 
@@ -38,17 +43,14 @@ def solve(graph):
                     cost = 0
                     for i in range(0, len(cycle)):
                         if not first:
-                            cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] * mini
-                            if gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'] == mini:
-                                if gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] < 0:
-                                    cost -= gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
-                                else:
-                                    cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
+                            cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['unit_cost'] * maxi
+                            if gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'] == maxi:
+                                cost -= gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
                             if tmp_graph.node[cycle[i]]['demand'] == 0:
-                                if tmp_graph.node[cycle[i - 1]]['demand'] > 0:
-                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * mini
+                                if tmp_graph.node[cycle[i - 1]]['demand'] < 0:
+                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * maxi
                                 else:
-                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * mini
+                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * maxi
                         else:
                             first = False
 
@@ -58,15 +60,15 @@ def solve(graph):
                         for i in range(0, len(cycle)):
                             if not first:
                                 if tmp_graph.has_edge(cycle[i - 1], cycle[i]):
-                                    tmp_graph.edge[cycle[i - 1]][cycle[i]]['flow'] += mini
+                                    tmp_graph.edge[cycle[i - 1]][cycle[i]]['flow'] += maxi
                                 else:
-                                    tmp_graph.edge[cycle[i]][cycle[i - 1]]['flow'] += mini
+                                    tmp_graph.edge[cycle[i]][cycle[i - 1]]['flow'] += maxi
 
                                 if tmp_graph.node[cycle[i]]['demand'] == 0:
                                     if tmp_graph.node[cycle[i - 1]]['demand'] > 0:
-                                        tmp_graph.node[cycle[i]]['flow'] += mini
+                                        tmp_graph.node[cycle[i]]['flow'] += maxi
                                     else:
-                                        tmp_graph.node[cycle[i]]['flow'] -= mini
+                                        tmp_graph.node[cycle[i]]['flow'] -= maxi
                             else:
                                 first = False
                         break
@@ -140,13 +142,13 @@ def get_gap_graph(graph):
     for u, v in graph.edges_iter():
         if graph.edge[u][v]['flow'] < graph.edge[u][v]['capacity']:
             gap_graph.add_edge(u, v, id=graph.edge[u][v]['id'],
-                               capacity=graph.edge[u][v]['capacity']-graph.edge[u][v]['flow'],
+                               capacity=graph.edge[u][v]['capacity'] - graph.edge[u][v]['flow'],
                                fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'],
                                time=graph.edge[u][v]['time'])
 
         if graph.edge[u][v]['flow'] > 0:
             gap_graph.add_edge(v, u, id=graph.edge[u][v]['id'], capacity=graph.edge[u][v]['flow'],
-                               fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'],
+                               fixed_cost=-graph.edge[u][v]['fixed_cost'], unit_cost=-graph.edge[u][v]['unit_cost'],
                                time=graph.edge[u][v]['time'])
 
     return gap_graph
