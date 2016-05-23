@@ -21,10 +21,13 @@ class Application(object):
         self.parser = Parser(file_name)
 
         self.graph = self.parser.import_from_file()
-        debug_graph(self.graph)
+
+        # debug_graph(self.graph)
 
         solve(self.graph)
-        debug_graph(self.graph)
+        print_solution(self.graph)
+
+        # debug_graph(self.graph)
 
         self.parser.export_to_file()
 
@@ -59,3 +62,21 @@ def debug_graph(graph):
         print('\t\tUnit cost: {}'.format(graph.edge[u][v]['unit_cost']), file=sys.stderr)
         print('\t\tTime: {}'.format(graph.edge[u][v]['time']), file=sys.stderr)
         print('\t\tFlow: {}'.format(graph.edge[u][v]['flow']), file=sys.stderr)
+
+
+def print_solution(graph):
+    """Displays all info about the solution of the problem"""
+
+    print('Name: {}'.format(graph.graph['name']))
+    print('Time: {}'.format(graph.graph['time']))
+
+    cost = 0
+
+    for i in get_platform_list(graph):
+            cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
+
+    for u, v in graph.edges_iter():
+        if graph.edge[u][v]['flow'] > 0:
+            cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
+
+    print('Result: {}'.format(cost))
