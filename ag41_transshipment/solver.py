@@ -20,6 +20,7 @@ def solve(graph):
     print('\n#####################', file=sys.stderr)
     print('# Initial solution! #', file=sys.stderr)
     print('#####################', file=sys.stderr)
+    print_solution(graph)
 
     try:
         continual = True
@@ -31,7 +32,7 @@ def solve(graph):
             for cycle in nx.simple_cycles(gap_graph):
                 # for each cycle in the gap graph
                 if len(cycle) > 2:
-                    # if the cycle is not only between to nodes
+                    # if the cycle is not only between two nodes
                     cycle = cycle + [cycle[0]]
                     # adding the first node of the cycle at the end
                     maxi = gap_graph.edge[cycle[0]][cycle[1]]['capacity']
@@ -76,7 +77,7 @@ def solve(graph):
                             else:
                                 first = False
                         break
-            graph = tmp_graph.copy()
+            graph = tmp_graph
             print('\n##############################', file=sys.stderr)
             print('# New better solution found! #', file=sys.stderr)
             print('##############################', file=sys.stderr)
