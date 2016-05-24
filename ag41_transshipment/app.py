@@ -10,25 +10,43 @@
 """Main file for the transshipment solver project"""
 
 from ag41_transshipment.parser import Parser
-from ag41_transshipment.solver import *
+from ag41_transshipment.solver import initialize, solve, print_solution
 import sys
+import time
 
 
 class Application(object):
     """Application class"""
 
     def __init__(self, file_name):
+
         self.parser = Parser(file_name)
 
         self.graph = self.parser.import_from_file()
-
         # debug_graph(self.graph)
 
-        solve(self.graph)
+        u_time = time.time()
+        s_time = time.clock()
+
+        initialize(self.graph)
+        self.init_graph = self.graph.copy()
+
+        print('\n#####################')
+        print('# Initial solution! #')
+        print('#####################')
+        print_solution(self.init_graph)
+
+        self.graph = solve(self.graph)
+
+        u_time = time.time() - u_time
+        s_time = time.clock() - s_time
+
+        print('\nExecution time (in seconds):')
+        print('\tuser time: {}'.format(u_time))
+        print('\tsystem time: {}\n'.format(s_time))
 
         # debug_graph(self.graph)
-
-        self.parser.export_to_file()
+        self.parser.export_to_file(self.init_graph, self.graph, u_time, s_time)
 
 
 def debug_graph(graph):

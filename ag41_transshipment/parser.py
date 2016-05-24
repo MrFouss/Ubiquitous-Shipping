@@ -9,7 +9,9 @@
 
 """Parser for the transshipment solver project"""
 
+from ag41_transshipment.solver import get_platform_list
 import networkx as nx
+import math
 
 
 class Parser(object):
@@ -63,11 +65,69 @@ class Parser(object):
 
         return new_graph
 
-    def export_to_file(self):
+    def export_to_file(self, init_graph, graph, u_time, s_time):
         """Exports the solution of the problem"""
 
         file = open(self.file_path + '.sol', 'w+')
 
-        pass
+        file.write('\n###############\n')
+        file.write('# FILE LOADED #\n')
+        file.write('###############\n\n')
+
+        file.write('Problem file: {}\n'.format(self.file_path))
+        file.write('Solution file: {}\n'.format(self.file_path + '.sol'))
+
+        file.write('\n####################\n')
+        file.write('# INITIAL SOLUTION #\n')
+        file.write('####################\n\n')
+
+        cost = 0
+        for i in get_platform_list(init_graph):
+            if init_graph.node[i]['flow'] > 0:
+                cost += init_graph.node[i]['unit_cost'] * init_graph.node[i]['flow']
+                file.write('Platform node #{} used with flow={}\n'.format(i, init_graph.node[i]['flow']))
+        file.write('\n')
+        for u, v in init_graph.edges_iter():
+            if init_graph.edge[u][v]['flow'] > 0:
+                cost += init_graph.edge[u][v]['flow'] * init_graph.edge[u][v]['unit_cost'] + init_graph.edge[u][v]['fixed_cost']
+                file.write('Edge #{} from node #{} to node #{} used with flow={}\n'.format(init_graph.edge[u][v]['id'], u, v, init_graph.edge[u][v]['flow']))
+
+        file.write('\nResult: {}\n'.format(cost))
+
+        file.write('\n####################\n')
+        file.write('# OPTIMAL SOLUTION #\n')
+        file.write('####################\n\n')
+
+        cost = 0
+        for i in get_platform_list(graph):
+            if graph.node[i]['flow'] > 0:
+                cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
+                file.write('Platform node #{} used with flow={}\n'.format(i, graph.node[i]['flow']))
+        file.write('\n')
+        for u, v in graph.edges_iter():
+            if graph.edge[u][v]['flow'] > 0:
+                cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
+                file.write('Edge #{} from node #{} to node #{} used with flow={}\n'.format(graph.edge[u][v]['id'], u, v,
+                                                                                           graph.edge[u][v]['flow']))
+        file.write('\nResult: {}\n'.format(cost))
+
+        file.write('\n###################\n')
+        file.write('# RESOLUTION TIME #\n')
+        file.write('###################\n\n')
+
+        u_hour = (u_time - (u_time % 3600.))/3600
+        s_hour = (s_time - (s_time % 3600.))/3600
+
+        u_time -= u_hour * 3600.
+        s_time -= s_hour * 3600.
+
+        u_min = (u_time - (u_time % 60.))/60
+        s_min = (s_time - (s_time % 60.))/60
+
+        u_time -= u_min * 60.
+        s_time -= s_min * 60.
+
+        file.write('User time : {} hours, {} minutes and {} seconds\n'.format(u_hour, u_min, u_time))
+        file.write('System time : {} hours, {} minutes and {} seconds\n'.format(s_hour, s_min, s_time))
 
         file.close()

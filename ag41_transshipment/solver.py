@@ -16,12 +16,6 @@ import sys
 def solve(graph):
     """Main solving function"""
 
-    initialize(graph)
-    print('\n#####################', file=sys.stdout)
-    print('# Initial solution! #', file=sys.stdout)
-    print('#####################', file=sys.stdout)
-    print_solution(graph)
-
     try:
         continual = True
         while continual:
@@ -110,13 +104,15 @@ def solve(graph):
 
                         break
             graph = tmp_graph
-            print('\n##############################', file=sys.stdout)
-            print('# New better solution found! #', file=sys.stdout)
-            print('##############################', file=sys.stdout)
+            print('\n##############################')
+            print('# New better solution found! #')
+            print('##############################')
             print_solution(graph)
 
     except KeyboardInterrupt:
-        print('Optimization interrupted!')
+        print('Optimization interrupted!', file=sys.stderr)
+    finally:
+        return graph
 
 
 def initialize(graph):
@@ -210,6 +206,5 @@ def print_solution(graph):
         if graph.edge[u][v]['flow'] > 0:
             cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
             print('Edge #{} from node #{} to node #{} used with flow={}'.format(graph.edge[u][v]['id'], u, v,
-                                                                            graph.edge[u][v]['flow']))
-
-    print('Result: {}'.format(cost), file=sys.stdout)
+                                                                                graph.edge[u][v]['flow']))
+    print('Result: {}'.format(cost))
