@@ -11,12 +11,15 @@
 
 import networkx as nx
 import sys
+import time
 
 
 def solve(graph):
     """Main solving function"""
 
     try:
+        u_time = time.time()
+
         continual = True
         while continual:
             # while there is at least one negative cycle
@@ -25,6 +28,10 @@ def solve(graph):
             tmp_graph = graph.copy()
             cycles = nx.simple_cycles(gap_graph)
             for cycle in cycles:
+                # to end the optimization before the end, after a certain time
+                if (time.time() - u_time) / 60. >= 30:
+                    raise KeyboardInterrupt
+
                 # for each cycle in the gap graph
                 if len(cycle) > 2:
                     # if the cycle is not only between two nodes
