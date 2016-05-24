@@ -10,7 +10,7 @@
 """Main file for the transshipment solver project"""
 
 from ag41_transshipment.parser import Parser
-from ag41_transshipment.solver import initialize, solve, print_solution
+from ag41_transshipment.solver import initialize, solve, print_solution, test_feasability
 import sys
 import time
 
@@ -30,20 +30,24 @@ class Application(object):
 
         initialize(self.graph)
         self.init_graph = self.graph.copy()
+        if test_feasability(self.graph):
 
-        print('\n#####################')
-        print('# Initial solution! #')
-        print('#####################')
-        print_solution(self.init_graph)
+            print('\n#####################')
+            print('# Initial solution! #')
+            print('#####################')
+            print_solution(self.init_graph)
 
-        self.graph = solve(self.graph)
+            self.graph = solve(self.graph)
 
-        u_time = time.time() - u_time
-        s_time = time.clock() - s_time
+            u_time = time.time() - u_time
+            s_time = time.clock() - s_time
 
-        print('\nExecution time (in seconds):')
-        print('\tuser time: {}'.format(u_time))
-        print('\tsystem time: {}\n'.format(s_time))
+            print('\nExecution time (in seconds):')
+            print('\tuser time: {}'.format(u_time))
+            print('\tsystem time: {}\n'.format(s_time))
+
+        else:
+            print('The problem can\'t be solved!')
 
         # debug_graph(self.graph)
         self.parser.export_to_file(self.init_graph, self.graph, u_time, s_time)

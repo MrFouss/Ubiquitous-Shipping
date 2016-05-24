@@ -29,7 +29,7 @@ def solve(graph):
             cycles = nx.simple_cycles(gap_graph)
             for cycle in cycles:
                 # to end the optimization before the end, after a certain time
-                if (time.time() - u_time) / 60. >= 30:
+                if (time.time() - u_time) / 60. >= 30.:
                     raise KeyboardInterrupt
 
                 # for each cycle in the gap graph
@@ -115,9 +115,11 @@ def solve(graph):
             print('# New better solution found! #')
             print('##############################')
             print_solution(graph)
+        graph.graph['interrupted'] = False
 
     except KeyboardInterrupt:
         print('Optimization interrupted!', file=sys.stderr)
+        graph.graph['interrupted'] = True
     finally:
         return graph
 
@@ -215,3 +217,20 @@ def print_solution(graph):
             print('Edge #{} from node #{} to node #{} used with flow={}'.format(graph.edge[u][v]['id'], u, v,
                                                                                 graph.edge[u][v]['flow']))
     print('Result: {}'.format(cost))
+
+
+def test_feasability(graph):
+    """Checks if a problem can or not be solved"""
+
+    feasable = True
+
+    for i in get_depot_list(graph):
+        sum_flow = 0
+        for j in graph.successors(i):
+            sum_flow += graph.edge[i][j]['flow']
+        if sum_flow != -graph.node[i]['demand']:
+            feasable = False
+            break
+
+    graph.graph['feasable'] = feasable
+    return feasable
