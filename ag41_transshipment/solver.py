@@ -89,6 +89,7 @@ def solve(graph):
 
     try:
         u_time = time.time()
+        s_time = time.clock()
 
         continual = True
         while continual:
@@ -183,8 +184,28 @@ def solve(graph):
             graph = tmp_graph
             print('\n##############################')
             print('# New better solution found! #')
-            print('##############################')
+            print('##############################\n')
             print_solution(graph)
+
+            u_tmp = time.time() - u_time
+            s_tmp = time.clock() - s_time
+
+            u_hour = (u_tmp - (u_tmp % 3600.)) / 3600
+            s_hour = (s_tmp - (s_tmp % 3600.)) / 3600
+
+            u_tmp -= u_hour * 3600.
+            s_tmp -= s_hour * 3600.
+
+            u_min = (u_tmp - (u_tmp % 60.)) / 60
+            s_min = (s_tmp - (s_tmp % 60.)) / 60
+
+            u_tmp -= u_min * 60.
+            s_tmp -= s_min * 60.
+
+            print('\nTime since beginning:')
+            print('\tUser time : {} hours, {} minutes and {} seconds'.format(u_hour, u_min, u_tmp))
+            print('\tSystem time : {} hours, {} minutes and {} seconds\n'.format(s_hour, s_min, s_tmp))
+
         graph.graph['interrupted'] = False
 
     except KeyboardInterrupt:
@@ -258,12 +279,13 @@ def print_solution(graph):
             cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
             print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']))
 
+    print()
     for u, v in graph.edges_iter():
         if graph.edge[u][v]['flow'] > 0:
             cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']
             print('Edge #{} from node #{} to node #{} used with flow={}'.format(graph.edge[u][v]['id'], u, v,
                                                                                 graph.edge[u][v]['flow']))
-    print('Result: {}'.format(cost))
+    print('\nResult: {}'.format(cost))
 
 
 def test_feasability(graph):

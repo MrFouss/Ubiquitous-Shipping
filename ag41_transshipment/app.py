@@ -42,9 +42,21 @@ class Application(object):
             u_time = time.time() - u_time
             s_time = time.clock() - s_time
 
-            print('\nExecution time (in seconds):')
-            print('\tuser time: {}'.format(u_time))
-            print('\tsystem time: {}\n'.format(s_time))
+            u_hour = (u_time - (u_time % 3600.)) / 3600
+            s_hour = (s_time - (s_time % 3600.)) / 3600
+
+            u_time -= u_hour * 3600.
+            s_time -= s_hour * 3600.
+
+            u_min = (u_time - (u_time % 60.)) / 60
+            s_min = (s_time - (s_time % 60.)) / 60
+
+            u_time -= u_min * 60.
+            s_time -= s_min * 60.
+
+            print('\nExecution time:')
+            print('\tUser time : {} hours, {} minutes and {} seconds'.format(u_hour, u_min, u_time))
+            print('\tSystem time : {} hours, {} minutes and {} seconds\n'.format(s_hour, s_min, s_time))
 
         else:
             print('The problem can\'t be solved!')

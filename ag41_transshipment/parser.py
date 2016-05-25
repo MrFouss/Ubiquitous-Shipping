@@ -39,7 +39,9 @@ class Parser(object):
             i += 1
 
             line = line.split()
-            if line[0] == 'NODE:':
+            if '#' in line[0]:
+                pass
+            elif line[0] == 'NODE:':
                 new_graph.add_node(int(line[1]), x=float(line[2]), y=float(line[3]), demand=int(line[4]),
                                    unit_cost=float(line[5]), time=float(line[6]), flow=0)
             elif line[0] == 'EDGE:':
@@ -54,8 +56,6 @@ class Parser(object):
                 new_graph.graph['nbr_edges'] = int(line[2])
             elif line[0] == 'T':
                 new_graph.graph['time'] = float(line[2])
-            elif '#' in line[0]:
-                pass
             elif line[0] == 'EOF':
                 break
             else:
@@ -70,7 +70,7 @@ class Parser(object):
 
         file = open(self.file_path + '.sol', 'w+')
 
-        file.write('\n###############\n')
+        file.write('###############\n')
         file.write('# FILE LOADED #\n')
         file.write('###############\n\n')
 
@@ -135,8 +135,9 @@ class Parser(object):
             u_time -= u_min * 60.
             s_time -= s_min * 60.
 
-            file.write('User time : {} hours, {} minutes and {} seconds\n'.format(u_hour, u_min, u_time))
-            file.write('System time : {} hours, {} minutes and {} seconds\n'.format(s_hour, s_min, s_time))
+            file.write('Execution time:\n')
+            file.write('\tUser time : {} hours, {} minutes and {} seconds\n'.format(u_hour, u_min, u_time))
+            file.write('\tSystem time : {} hours, {} minutes and {} seconds\n'.format(s_hour, s_min, s_time))
 
         else:
             file.write('\nThe problem can\'t be solved!\n')
