@@ -16,7 +16,7 @@ import time
 
 def initialize(graph):
     """Defines an initial solution of maximum flow for the transshipment problem (Edmonds-Karp Algorithm)"""
-
+    graph = expand(graph)
     old_graph = graph.copy()
 
     # initialization of source node
@@ -309,22 +309,20 @@ def expand(graph):
     tmp_graph = nx.DiGraph()
     for depot in get_depot_list(graph):
         # for each depot we create a platform and its edge to it
-        tmp_graph.add_node(depot)
+        tmp_graph.add_node(depot, demand=graph.node[depot]['demand'])
         for platform in get_platform_list(graph):
             if graph.has_edge(depot, platform):
-                tmp_graph.add_node('DP' + str(depot) + str(platform),
-                                   demand=0, unit_cost=0, flow=0)
+                tmp_graph.add_node('DP' + str(depot) + str(platform), demand=0)
                 edge = graph.edge[depot][platform]
                 tmp_graph.add_edge(depot, 'DP' + str(depot) + str(platform), id=edge['id'],
                                    capacity=edge['capacity'], fixed_cost=edge['fixed_cost'],
                                    unit_cost=edge['unit_cost'], flow=0)
     for client in get_client_list(graph):
-        tmp_graph.add_node(client)
+        tmp_graph.add_node(client, demand=graph.node[client]['demand'])
         for platform in get_platform_list(graph):
             # like for the depots
             if graph.has_edge(platform, client):
-                tmp_graph.add_node('CP' + str(client) + str(platform),
-                                   demand=0, unit_cost=0, flow=0)
+                tmp_graph.add_node('CP' + str(client) + str(platform), demand=0)
                 edge = graph.edge[platform][client]
                 tmp_graph.add_edge('CP' + str(client) + str(platform), client, id=edge['id'],
                                    capacity=edge['capacity'], fixed_cost=edge['fixed_cost'],
