@@ -10,7 +10,7 @@
 """Main file for the transshipment solver project"""
 
 from ag41_transshipment.parser import Parser
-from ag41_transshipment.solver import initialize, solve, print_solution, test_feasability
+from ag41_transshipment.solver import initialize, solve, print_solution, test_feasibility
 import sys
 import time
 
@@ -30,7 +30,7 @@ class Application(object):
 
         initialize(self.graph)
         self.init_graph = self.graph.copy()
-        if test_feasability(self.graph):
+        if test_feasibility(self.graph):
 
             print('\n#####################')
             print('# Initial solution! #')

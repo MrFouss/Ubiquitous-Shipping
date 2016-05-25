@@ -77,7 +77,7 @@ class Parser(object):
         file.write('Problem file: {}\n'.format(self.file_path))
         file.write('Solution file: {}\n'.format(self.file_path + '.sol'))
 
-        if graph.graph['feasable']:
+        if graph.graph['feasible']:
 
             file.write('\n####################\n')
             file.write('# INITIAL SOLUTION #\n')

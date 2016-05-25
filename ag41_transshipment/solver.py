@@ -37,7 +37,6 @@ def initialize(graph):
 
     # body of the maximum flow
 
-    flow = 0
     while True:
 
         # run a breadth first traversal to find the shortest path from the source to the path
@@ -288,18 +287,60 @@ def print_solution(graph):
     print('\nResult: {}'.format(cost))
 
 
-def test_feasability(graph):
+def test_feasibility(graph):
     """Checks if a problem can or not be solved"""
 
-    feasable = True
+    feasible = True
 
     for i in get_depot_list(graph):
         sum_flow = 0
         for j in graph.successors(i):
             sum_flow += graph.edge[i][j]['flow']
         if sum_flow != -graph.node[i]['demand']:
-            feasable = False
+            feasible = False
             break
 
-    graph.graph['feasable'] = feasable
-    return feasable
+    graph.graph['feasible'] = feasible
+    return feasible
+
+
+def expand(graph):
+    """Change the graph to take care of time constraints"""
+    tmp_graph = nx.DiGraph()
+    for depot in get_depot_list(graph):
+        # for each depot we create a platform and its edge to it
+        tmp_graph.add_node(depot)
+        for platform in get_platform_list(graph):
+            if graph.has_edge(depot, platform):
+                tmp_graph.add_node('DP' + str(depot) + str(platform),
+                                   demand=0, unit_cost=0, flow=0)
+                edge = graph.edge[depot][platform]
+                tmp_graph.add_edge(depot, 'DP' + str(depot) + str(platform), id=edge['id'],
+                                   capacity=edge['capacity'], fixed_cost=edge['fixed_cost'],
+                                   unit_cost=edge['unit_cost'], flow=0)
+    for client in get_client_list(graph):
+        tmp_graph.add_node(client)
+        for platform in get_platform_list(graph):
+            # like for the depots
+            if graph.has_edge(platform, client):
+                tmp_graph.add_node('CP' + str(client) + str(platform),
+                                   demand=0, unit_cost=0, flow=0)
+                edge = graph.edge[platform][client]
+                tmp_graph.add_edge('CP' + str(client) + str(platform), client, id=edge['id'],
+                                   capacity=edge['capacity'], fixed_cost=edge['fixed_cost'],
+                                   unit_cost=edge['unit_cost'], flow=0)
+            for depot in get_depot_list(graph):
+                # if we can go from a depot to a client through a platform, the edge is created
+                if tmp_graph.has_node('DP' + str(depot) + str(platform)):
+                    t = graph.edge[depot][platform]['time']
+                    t += graph.node[platform]['time']
+                    t += graph.edge[platform][client]['time']
+                    if t <= graph.graph['time']:
+                        tmp_graph.add_edge('DP' + str(depot) + str(platform),
+                                           'CP' + str(client) + str(platform),
+                                           id=str(depot) + str(platform) + str(client),
+                                           capacity=min(graph.edge[depot][platform]['capacity'],
+                                                        graph.edge[platform][client]['capacity']),
+                                           fixed_cost=0, unit_cost=graph.node[platform]['unit_cost'], flow=0)
+    graph = tmp_graph
+    return graph
