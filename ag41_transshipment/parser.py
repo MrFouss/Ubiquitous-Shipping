@@ -84,11 +84,11 @@ class Parser(object):
             file.write('####################\n\n')
 
             cost = 0
-            for i in get_platform_list(init_graph):
-                if init_graph.node[i]['flow'] > 0:
-                    cost += init_graph.node[i]['unit_cost'] * init_graph.node[i]['flow']
-                    file.write('Platform node #{} used with flow={}\n'.format(i, init_graph.node[i]['flow']))
-            file.write('\n')
+            # for i in get_platform_list(init_graph):
+            #     if init_graph.node[i]['flow'] > 0:
+            #         cost += init_graph.node[i]['unit_cost'] * init_graph.node[i]['flow']
+            #         file.write('Platform node #{} used with flow={}\n'.format(i, init_graph.node[i]['flow']))
+            # file.write('\n')
             for u, v in init_graph.edges_iter():
                 if init_graph.edge[u][v]['flow'] > 0:
                     cost += init_graph.edge[u][v]['flow'] * init_graph.edge[u][v]['unit_cost'] + init_graph.edge[u][v]['fixed_cost']
@@ -107,11 +107,11 @@ class Parser(object):
                 file.write('####################\n\n')
 
             cost = 0
-            for i in get_platform_list(graph):
-                if graph.node[i]['flow'] > 0:
-                    cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
-                    file.write('Platform node #{} used with flow={}\n'.format(i, graph.node[i]['flow']))
-            file.write('\n')
+            # for i in get_platform_list(graph):
+            #     if graph.node[i]['flow'] > 0:
+            #         cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
+            #         file.write('Platform node #{} used with flow={}\n'.format(i, graph.node[i]['flow']))
+            # file.write('\n')
             for u, v in graph.edges_iter():
                 if graph.edge[u][v]['flow'] > 0:
                     cost += graph.edge[u][v]['flow'] * graph.edge[u][v]['unit_cost'] + graph.edge[u][v]['fixed_cost']

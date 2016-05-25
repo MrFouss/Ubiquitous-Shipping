@@ -67,7 +67,6 @@ def initialize(graph):
             (u, v) = pred[prev]
             graph.edge[u][v]['flow'] += df
             graph.edge[v][u]['flow'] -= df
-            graph.node[v]['flow'] += df
             prev = u
 
     # removal of excess edges and nodes
@@ -273,10 +272,10 @@ def print_solution(graph):
 
     cost = 0
 
-    for i in get_platform_list(graph):
-        if graph.node[i]['flow'] > 0:
-            cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
-            print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']))
+    # for i in get_platform_list(graph):
+    #     if graph.node[i]['flow'] > 0:
+    #         cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
+    #         print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']))
 
     print()
     for u, v in graph.edges_iter():
@@ -340,5 +339,6 @@ def expand(graph):
                                            capacity=min(graph.edge[depot][platform]['capacity'],
                                                         graph.edge[platform][client]['capacity']),
                                            fixed_cost=0, unit_cost=graph.node[platform]['unit_cost'], flow=0)
+    tmp_graph.graph['interrupted'] = False
     graph = tmp_graph
     return graph
