@@ -125,24 +125,6 @@ def solve(graph):
                             if gap_graph.edge[cycle[i - 1]][cycle[i]]['capacity'] == maxi:
                                 # if we empty the edge in the base graph, we deduce the fixed cost
                                 cost += gap_graph.edge[cycle[i - 1]][cycle[i]]['fixed_cost']
-                        if tmp_graph.node[cycle[i]]['demand'] == 0:
-                            # if it is a platform
-                            if i < len(cycle) - 1:
-                                if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < \
-                                        tmp_graph.node[cycle[i + 1]]['demand']:
-                                    # if the in node of the edge is a depot and the out is a client
-                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * maxi
-                                    # we add the unit cost of the platform
-                                elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > \
-                                        tmp_graph.node[cycle[i + 1]]['demand']:
-                                    # if the in node of the edge is a client and the out is a depot
-                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * maxi
-                                    # we deduce the unit cost of the platform
-                            else:
-                                if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < tmp_graph.node[cycle[1]]['demand']:
-                                    cost += tmp_graph.node[cycle[i]]['unit_cost'] * maxi
-                                elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > tmp_graph.node[cycle[1]]['demand']:
-                                    cost -= tmp_graph.node[cycle[i]]['unit_cost'] * maxi
 
                     if cost < 0:
                         continual = True
@@ -157,27 +139,6 @@ def solve(graph):
                                 # if the edge is in the opposite orientation in the graph and the gap graph
                                 tmp_graph.edge[cycle[i]][cycle[i - 1]]['flow'] -= maxi
                                 # we deduce the flow
-                            if tmp_graph.node[cycle[i]]['demand'] == 0:
-                                # if it is a platform
-                                if i < len(cycle) - 1:
-                                    if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < \
-                                            tmp_graph.node[cycle[i + 1]]['demand']:
-                                        # if the in node of the edge is a depot and the out is a client
-                                        tmp_graph.node[cycle[i]]['flow'] += maxi
-                                        # we add the unit cost of the platform
-                                    elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > \
-                                            tmp_graph.node[cycle[i + 1]]['demand']:
-                                        # if the in node of the edge is a client and the out is a depot
-                                        tmp_graph.node[cycle[i]]['flow'] -= maxi
-                                        # we deduce the unit cost of the platform
-                                else:
-                                    if tmp_graph.node[cycle[i - 1]]['demand'] < 0 < \
-                                            tmp_graph.node[cycle[1]]['demand']:
-                                        tmp_graph.node[cycle[i]]['flow'] += maxi
-                                    elif tmp_graph.node[cycle[i - 1]]['demand'] > 0 > \
-                                            tmp_graph.node[cycle[1]]['demand']:
-                                        tmp_graph.node[cycle[i]]['flow'] -= maxi
-
                         break
             graph = tmp_graph
             print('\n##############################')
@@ -256,13 +217,11 @@ def get_gap_graph(graph):
             if graph.edge[u][v]['flow'] < graph.edge[u][v]['capacity']:
                 gap_graph.add_edge(u, v,
                                    capacity=graph.edge[u][v]['capacity'] - graph.edge[u][v]['flow'],
-                                   fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'],
-                                   time=graph.edge[u][v]['time'])
+                                   fixed_cost=graph.edge[u][v]['fixed_cost'], unit_cost=graph.edge[u][v]['unit_cost'])
 
             if graph.edge[u][v]['flow'] > 0:
                 gap_graph.add_edge(v, u, capacity=graph.edge[u][v]['flow'],
-                                   fixed_cost=-graph.edge[u][v]['fixed_cost'], unit_cost=-graph.edge[u][v]['unit_cost'],
-                                   time=graph.edge[u][v]['time'])
+                                   fixed_cost=-graph.edge[u][v]['fixed_cost'], unit_cost=-graph.edge[u][v]['unit_cost'])
 
     return gap_graph
 
@@ -271,11 +230,6 @@ def print_solution(graph):
     """Displays all info about the solution of the problem"""
 
     cost = 0
-
-    # for i in get_platform_list(graph):
-    #     if graph.node[i]['flow'] > 0:
-    #         cost += graph.node[i]['unit_cost'] * graph.node[i]['flow']
-    #         print('Platform node #{} used with flow={}'.format(i, graph.node[i]['flow']))
 
     print()
     for u, v in graph.edges_iter():
@@ -326,19 +280,19 @@ def expand(graph):
                 tmp_graph.add_edge('CP' + str(client) + str(platform), client, id=edge['id'],
                                    capacity=edge['capacity'], fixed_cost=edge['fixed_cost'],
                                    unit_cost=edge['unit_cost'], flow=0)
-            for depot in get_depot_list(graph):
-                # if we can go from a depot to a client through a platform, the edge is created
-                if tmp_graph.has_node('DP' + str(depot) + str(platform)):
-                    t = graph.edge[depot][platform]['time']
-                    t += graph.node[platform]['time']
-                    t += graph.edge[platform][client]['time']
-                    if t <= graph.graph['time']:
-                        tmp_graph.add_edge('DP' + str(depot) + str(platform),
-                                           'CP' + str(client) + str(platform),
-                                           id=str(depot) + str(platform) + str(client),
-                                           capacity=min(graph.edge[depot][platform]['capacity'],
-                                                        graph.edge[platform][client]['capacity']),
-                                           fixed_cost=0, unit_cost=graph.node[platform]['unit_cost'], flow=0)
+                for depot in get_depot_list(graph):
+                    # if we can go from a depot to a client through a platform, the edge is created
+                        if tmp_graph.has_node('DP' + str(depot) + str(platform)):
+                            t = graph.edge[depot][platform]['time']
+                            t += graph.node[platform]['time']
+                            t += graph.edge[platform][client]['time']
+                            if t <= graph.graph['time']:
+                                tmp_graph.add_edge('DP' + str(depot) + str(platform),
+                                                   'CP' + str(client) + str(platform),
+                                                   id=str(depot) + str(platform) + str(client),
+                                                   capacity=min(graph.edge[depot][platform]['capacity'],
+                                                                graph.edge[platform][client]['capacity']),
+                                                   fixed_cost=0, unit_cost=graph.node[platform]['unit_cost'], flow=0)
     tmp_graph.graph['interrupted'] = False
     graph = tmp_graph
     return graph
