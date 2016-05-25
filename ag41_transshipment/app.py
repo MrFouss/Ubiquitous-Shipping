@@ -42,6 +42,8 @@ class Application(object):
             u_time = time.time() - u_time
             s_time = time.clock() - s_time
 
+            self.parser.export_to_file(self.init_graph, self.graph, u_time, s_time)
+
             u_hour = (u_time - (u_time % 3600.)) / 3600
             s_hour = (s_time - (s_time % 3600.)) / 3600
 
@@ -60,9 +62,9 @@ class Application(object):
 
         else:
             print('The problem can\'t be solved!')
+            self.parser.export_to_file(self.init_graph, self.graph, u_time, s_time)
 
         # debug_graph(self.graph)
-        self.parser.export_to_file(self.init_graph, self.graph, u_time, s_time)
 
 
 def debug_graph(graph):
