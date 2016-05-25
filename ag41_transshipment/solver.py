@@ -14,6 +14,76 @@ import sys
 import time
 
 
+def initialize(graph):
+    """Defines an initial solution of maximum flow for the transshipment problem (Edmonds-Karp Algorithm)"""
+
+    old_graph = graph.copy()
+
+    # initialization of source node
+    graph.add_node('s', demand=0, time=0, flow=0)
+    for depot in get_depot_list(graph):
+        graph.add_edge('s', depot, capacity=-graph.node[depot]['demand'], time=0, flow=0)
+        graph.node['s']['demand'] -= graph.node[depot]['demand']
+
+    # initialization of target node
+    graph.add_node('t', demand=0, time=0, flow=0)
+    for client in get_client_list(graph):
+        graph.add_edge(client, 't', capacity=graph.node[client]['demand'], time=0, flow=0)
+        graph.node['t']['demand'] += graph.node[client]['demand']
+
+    # initialization of reverse edges
+    for (u, v) in graph.edges():
+        graph.add_edge(v, u, capacity=0, time=0, flow=0)
+
+    # body of the maximum flow
+
+    flow = 0
+    while True:
+
+        # run a breadth first traversal to find the shortest path from the source to the path
+        queue = ['s']
+        pred = dict()
+        while queue != []:
+            u = queue.pop(0)
+            for v in graph.successors(u):
+                if v not in pred and v != 's' and graph.edge[u][v]['capacity'] > graph.edge[u][v]['flow']:
+                    pred[v] = (u, v)
+                    queue.append(v)
+
+        # if there is no path from the source to the target
+        if 't' not in pred:
+            break
+
+        # look for the biggest flow that can fit in the path
+        df = float('infinity')
+        prev = 't'
+        while prev != 's':
+            (u, v) = pred[prev]
+            df = min(df, graph.edge[u][v]['capacity'] - graph.edge[u][v]['flow'])
+            prev = u
+
+        # update the flow of the chosen path
+        prev = 't'
+        while prev != 's':
+            (u, v) = pred[prev]
+            graph.edge[u][v]['flow'] += df
+            graph.edge[v][u]['flow'] -= df
+            graph.node[v]['flow'] += df
+            prev = u
+
+    # removal of excess edges and nodes
+    for (u, v) in old_graph.edges():
+        graph.remove_edge(v, u)
+    for depot in get_depot_list(graph):
+        graph.remove_edge('s', depot)
+    graph.remove_node('s')
+    for client in get_client_list(graph):
+        graph.remove_edge(client, 't')
+    graph.remove_node('t')
+
+    return graph
+
+
 def solve(graph):
     """Main solving function"""
 
@@ -124,35 +194,12 @@ def solve(graph):
         return graph
 
 
-def initialize(graph):
-    """Defines an initial solution for the transshipment problem"""
-
-    for i in get_depot_list(graph):
-        for j in graph.neighbors(i):
-            if graph.node[i]['flow'] == -1 * graph.node[i]['demand']:
-                break
-            else:
-                for k in graph.neighbors(j):
-                    if graph.node[i]['flow'] == -1 * graph.node[i]['demand']:
-                        break
-                    elif graph.edge[i][j]['time'] + graph.node[j]['time'] + graph.edge[j][k]['time'] < \
-                            graph.graph['time']:
-                        diff = min(-1 * graph.node[i]['demand'] - graph.node[i]['flow'], graph.node[k]['demand'] -
-                                   graph.node[k]['flow'], graph.edge[i][j]['capacity'] - graph.edge[i][j]['flow'],
-                                   graph.edge[j][k]['capacity'] - graph.edge[j][k]['flow'])
-                        graph.node[i]['flow'] += diff
-                        graph.node[j]['flow'] += diff
-                        graph.node[k]['flow'] += diff
-                        graph.edge[i][j]['flow'] += diff
-                        graph.edge[j][k]['flow'] += diff
-
-
 def get_depot_list(graph):
     """Lists all depot nodes"""
 
     depot_list = []
     for i in graph.nodes():
-        if graph.node[i]['demand'] < 0:
+        if graph.node[i]['demand'] < 0 and i != 's' and i != 't':
             depot_list.append(i)
 
     return depot_list
@@ -163,7 +210,7 @@ def get_platform_list(graph):
 
     platform_list = []
     for i in graph.nodes():
-        if graph.node[i]['demand'] == 0:
+        if graph.node[i]['demand'] == 0 and i != 's' and i != 't':
             platform_list.append(i)
 
     return platform_list
@@ -174,7 +221,7 @@ def get_client_list(graph):
 
     client_list = []
     for i in graph.nodes():
-        if graph.node[i]['demand'] > 0:
+        if graph.node[i]['demand'] > 0 and i != 's' and i != 't':
             client_list.append(i)
 
     return client_list

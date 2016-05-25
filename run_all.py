@@ -10,7 +10,14 @@
 """Runs run.py for each file in the data folder"""
 
 import os
+import sys
 
 
-for file in os.listdir('../data'):
-    os.system('/usr/bin/python3 run.py {}'.format(file))
+if len(sys.argv) == 2:
+    files = os.listdir(sys.argv[1])
+    files.sort()
+    for file in files:
+        os.system('/usr/bin/python3 run.py {}'.format(sys.argv[1] + '/' + file))
+else:
+    print('Usage: {} data_directory'.format(sys.argv[0]), file=sys.stderr)
+
