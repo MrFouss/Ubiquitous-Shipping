@@ -82,7 +82,7 @@ def initialize(graph):
     return graph
 
 
-def solve(graph):
+def solve(graph, max_time):
     """Main solving function"""
 
     try:
@@ -98,7 +98,7 @@ def solve(graph):
             cycles = nx.simple_cycles(gap_graph)
             for cycle in cycles:
                 # to end the optimization before the end, after a certain time
-                if (time.time() - u_time) / 60. >= 30.:
+                if time.time() - u_time >= max_time / 1000:
                     raise KeyboardInterrupt
 
                 # for each cycle in the gap graph

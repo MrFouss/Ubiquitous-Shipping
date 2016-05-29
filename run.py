@@ -14,9 +14,21 @@ import sys
 import os
 
 
-if len(sys.argv) == 3:
+def print_help(func_arg):
+    """Displays the help of the program"""
+
+    print('How to use:', file=sys.stderr)
+    print('\t{} solve [data_file_name] [max_time]'.format(func_arg), file=sys.stderr)
+    print('\t\tto solve the problem in the file [data_file_name] in maximum [max_time] milliseconds', file=sys.stderr)
+    print('\t{} solve-all [data_directory] [max_time]'.format(func_arg), file=sys.stderr)
+    print('\t\tto solve all problems in the folder [data_directory] in maximum [max_time] milliseconds', file=sys.stderr)
+    print('\t{} clean [data_directory]'.format(func_arg), file=sys.stderr)
+    print('\t\tto clean the folder [data_directory] of all .sol files', file=sys.stderr)
+
+
+if len(sys.argv) == 4:
     if sys.argv[1] == 'solve':
-        APP = Application(sys.argv[2])
+        APP = Application(sys.argv[2], int(sys.argv[3]))
 
     elif sys.argv[1] == 'solve-all':
         files = os.listdir(sys.argv[2])
@@ -24,9 +36,12 @@ if len(sys.argv) == 3:
         for file in files:
             parts = file.split('.')
             if 'sol' not in parts:
-                APP = Application(sys.argv[2] + '/' + file)
+                APP = Application(sys.argv[2] + '/' + file, int(sys.argv[3]))
+    else:
+        print_help(sys.argv[0])
 
-    elif sys.argv[1] == 'clean':
+elif len(sys.argv) == 3:
+    if sys.argv[1] == 'clean':
         files = os.listdir(sys.argv[2])
         nb_files = 0
         for file in files:
@@ -36,12 +51,8 @@ if len(sys.argv) == 3:
                 nb_files += 1
         print('All .sol files deleted!')
         print('{} files removed'.format(nb_files))
+    else:
+        print_help(sys.argv[0])
 
 else:
-    print('How to use:', file=sys.stderr)
-    print('\t{} solve [data_file_name]'.format(sys.argv[0]))
-    print('\t\tto solve the problem in the file [data_file_name]', file=sys.stderr)
-    print('\t{} solve-all [data_directory]'.format(sys.argv[0]))
-    print('\t\tto solve all problems in the folder [data_directory]', file=sys.stderr)
-    print('\t{} clean [data_directory]'.format(sys.argv[0]))
-    print('\t\tto clean the folder [data_directory] of all .sol files', file=sys.stderr)
+    print_help(sys.argv[0])
