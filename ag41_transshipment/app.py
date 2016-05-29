@@ -18,7 +18,7 @@ import time
 class Application(object):
     """Application class"""
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, max_time):
 
         self.parser = Parser(file_name)
 
@@ -37,7 +37,7 @@ class Application(object):
             print('#####################')
             print_solution(self.init_graph)
 
-            self.graph = solve(self.graph)
+            self.graph = solve(self.graph, max_time)
 
             u_time = time.time() - u_time
             s_time = time.clock() - s_time
